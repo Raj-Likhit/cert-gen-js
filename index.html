@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Cloud Clubs Mecs – Certificate Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d4af37">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="galaxy-layer-0"></div>
+    <!-- Cosmic background wrappers are handled by CSS fixed layers for performance -->
+
+    <div id="app" class="app-container">
+        <!-- Space Fall Container -->
+        <div class="space-fall-container" id="falling-emojis" aria-hidden="true"></div>
+
+        <!-- Mobile Header Toggle -->
+        <div class="mobile-header">
+            <button id="mobileMenuToggle" class="menu-toggle-btn" aria-label="Open Navigation Menu">☰</button>
+            <div class="mobile-logo-text">AWS Cloud Clubs Portal</div>
+        </div>
+
+        <!-- Cosmic Loader Overlay -->
+        <div id="loaderOverlay" class="loader-overlay hidden">
+            <div class="cosmic-loader">
+                <div class="galaxy-pulse"></div>
+                <div class="loader-text">Generating Magic...</div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/logo_beige.png" alt="AWS Cloud Clubs Logo" id="sidebarLogo" loading="lazy" onerror="this.style.display='none'">
+            </div>
+            <div class="sidebar-title">☁️ Certificate Portal</div>
+            <hr class="sidebar-divider">
+            <nav class="sidebar-nav">
+                <label class="nav-btn active">
+                    <input type="radio" name="mode" value="download" checked>
+                    <span>📜 Download Certificate</span>
+                </label>
+                <label class="nav-btn">
+                    <input type="radio" name="mode" value="admin">
+                    <span>🔧 Admin Panel</span>
+                </label>
+            </nav>
+            <hr class="sidebar-divider">
+            <div class="sidebar-footer">
+                Powered by<br/>
+                <strong class="gold-text">AWS Cloud Clubs – Mecs</strong>
+            </div>
+            <div class="sidebar-help">
+                💡 Users download certificates from the main page.<br/>
+                Admins configure via the Admin Panel.
+            </div>
+            <button id="logoutBtn" class="logout-btn hidden" aria-label="Logout">🚪 Logout</button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- View: Download -->
+            <section id="viewDownload" class="view active">
+                <div class="hero-card fade-in">
+                    <div class="hero-content">
+                        <img src="assets/logo_beige.png" alt="Logo" class="hero-logo" loading="lazy" onerror="this.style.display='none'">
+                        <div>
+                            <h1>Download Your Certificate</h1>
+                            <p>Enter your full name below to generate &amp; download your certificate 🎓</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="noTemplateWarning" class="alert warning hidden fade-in">
+                    <p>⚠️ No certificate template has been uploaded yet. Please contact the administrator.</p>
+                </div>
+
+                <div class="input-group fade-in slide-up" style="animation-delay: 0.1s;">
+                    <label for="userName">✍️ Enter your name</label>
+                    <input type="text" id="userName" placeholder="e.g., John Doe" aria-label="Your Full Name">
+                </div>
+                
+                <div id="participantError" class="alert error hidden fade-in">
+                    <p>❌ Name not found in participant list. Please check your spelling or contact the administrator.</p>
+                </div>
+
+                <button id="btnGenerate" class="btn secondary fade-in slide-up" style="animation-delay: 0.2s;">✨ Generate Certificate</button>
+
+                <div id="downloadResult" class="result-container hidden fade-in">
+                    <div class="cert-wrapper">
+                        <canvas id="downloadCanvas" class="cert-canvas"></canvas>
+                    </div>
+                    <a id="btnDownload" class="btn primary download-btn" download="certificate.png">⬇️ Download Certificate</a>
+                </div>
+            </section>
+
+            <!-- View: Admin Login -->
+            <section id="viewLogin" class="view">
+                <div class="info-card login-card fade-in">
+                    <div class="icon">🔐</div>
+                    <h2>Admin Login</h2>
+                    <p>Enter your credentials to access the admin panel.</p>
+                </div>
+                <div class="login-form-container fade-in slide-up">
+                    <form id="loginForm">
+                        <div class="input-group">
+                            <label for="adminUser">Username</label>
+                            <input type="text" id="adminUser" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="adminPass">Password</label>
+                            <input type="password" id="adminPass" required>
+                        </div>
+                        <div id="loginError" class="alert error hidden">❌ Invalid username or password</div>
+                        <button type="submit" class="btn primary full-width">🔓 Login</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- View: Admin Panel -->
+            <section id="viewAdmin" class="view">
+                <div class="fade-in">
+                    <h1>🔧 Admin Panel</h1>
+
+                    <!-- Section 1: Upload -->
+                    <div class="info-card">
+                        <h3>1️⃣ Upload Certificate Template</h3>
+                        <p>Upload a PNG/JPG image to use as the certificate background.</p>
+                    </div>
+                    <div class="upload-container input-group">
+                        <input type="file" id="templateUpload" accept="image/png, image/jpeg">
+                        <div id="templatePreview" class="preview-container hidden">
+                            <img id="adminTemplateImg" alt="Template Preview">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fade-in slide-up" style="animation-delay: 0.1s;">
+                    <!-- Section 2: Controls -->
+                    <div class="info-card">
+                        <h3>2️⃣ Configure Text & Typography</h3>
+                        <p>Adjust position, font family, and explicit styling.</p>
+                    </div>
+                    
+                    <div class="controls-grid">
+                        <div class="control-column">
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.5rem;">
+                                <h4 style="margin: 0; color: var(--gold-accent); flex-grow: 1;">📍 Position</h4>
+                                <button id="btnAutoCenter" class="btn secondary" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;" title="Calculate and set perfect center">🎯 Auto Center</button>
+                                <button id="btnHardcode" class="btn primary" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;" title="Copy configuration to clipboard for deployment">📜 Export Config</button>
+                            </div>
+                            <div class="input-group">
+                                <label for="nameX">Name X Position (horizontal)</label>
+                                <input type="number" id="nameX" value="500">
+                            </div>
+                            <div class="input-group">
+                                <label for="nameY">Name Y Position (vertical)</label>
+                                <input type="number" id="nameY" value="400">
+                            </div>
+                            <div class="input-group">
+                                <label for="fontSize">Font Size</label>
+                                <div class="slider-group">
+                                    <input type="range" id="fontSize" min="20" max="250" value="60">
+                                    <span id="fontSizeDisplay">60px</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="control-column">
+                            <h4>🔠 Font Settings</h4>
+                            <div class="input-group">
+                                <label for="fontFamily">Font Family</label>
+                                <select id="fontFamily">
+                                    <option value="Arial, sans-serif">Arial</option>
+                                    <option value="'Times New Roman', serif">Times New Roman</option>
+                                    <option value="'Courier New', monospace">Courier New</option>
+                                    <option value="Custom Upload">Custom Upload</option>
+                                </select>
+                                <input type="file" id="fontUpload" accept=".ttf,.otf" class="hidden" style="margin-top: 10px; width: 100%; border: 1px dashed rgba(212, 175, 55, 0.4); padding: 5px; border-radius: 8px; color: var(--gold-accent); font-size: 0.9rem;" />
+                            </div>
+                            
+                            <div class="checkbox-group">
+                                <label class="checkbox-label"><input type="checkbox" id="fontBold"> Bold</label>
+                                <label class="checkbox-label"><input type="checkbox" id="fontItalic"> Italic</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4>🎨 Text Styling</h4>
+                    <div class="controls-grid">
+                        <div class="control-column">
+                            <div class="input-group">
+                                <label for="fontColor">Text Color</label>
+                                <input type="color" id="fontColor" value="#000000">
+                            </div>
+                        </div>
+                        <div class="control-column">
+                            <div class="input-group">
+                                <label for="strokeWidth">Text Outline Thickness (px)</label>
+                                <div class="slider-group">
+                                    <input type="range" id="strokeWidth" min="0" max="10" value="0">
+                                    <span id="strokeWidthDisplay">0px</span>
+                                </div>
+                            </div>
+                            <div class="input-group" id="strokeColorGroup" style="display:none; transition: all 0.3s ease;">
+                                <label for="strokeColor">Outline Color</label>
+                                <input type="color" id="strokeColor" value="#000000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fade-in slide-up" style="animation-delay: 0.2s;">
+                    <!-- Section 3: Preview -->
+                    <div class="info-card">
+                        <h3>3️⃣ Preview</h3>
+                        <p>See how the certificate looks with a sample name.</p>
+                    </div>
+                    
+                    <div class="preview-controls">
+                        <div class="input-group" style="flex: 1;">
+                            <label for="previewName">Preview Name</label>
+                            <input type="text" id="previewName" value="John Doe">
+                        </div>
+                    </div>
+                    
+                    <div class="cert-wrapper">
+                        <canvas id="adminPreviewCanvas" class="cert-canvas"></canvas>
+                    </div>
+                </div>
+
+                <div class="fade-in slide-up" style="animation-delay: 0.3s;">
+                    <!-- Section 4: Participants -->
+                    <div class="info-card">
+                        <h3>4️⃣ Manage Participants</h3>
+                        <p>Add individual or bulk participant names. Empty list means anyone can download.</p>
+                    </div>
+
+                    <div class="participant-controls">
+                        <div class="input-group row-flex">
+                            <input type="text" id="newParticipant" placeholder="Add Participant Name">
+                            <button id="btnAddParticipant" class="btn secondary">➕ Add</button>
+                        </div>
+                        
+                        <h5>📋 Bulk Add</h5>
+                        <div class="input-group">
+                            <textarea id="bulkParticipants" rows="4" placeholder="Enter names (one per line)"></textarea>
+                            <button id="btnBulkAdd" class="btn secondary" style="margin-top: 8px;">➕ Add All</button>
+                        </div>
+
+                        <h5>👥 Current Participants (<span id="participantCount">0</span>)</h5>
+                        <ul id="participantList" class="participant-list">
+                            <!-- Items injected by JS -->
+                        </ul>
+                    </div>
+                </div>
+                
+                <button id="btnSaveConfig" class="btn primary full-width save-btn fade-in slide-up" style="animation-delay: 0.4s;">💾 Save All Settings</button>
+                <div id="saveToast" class="toast hidden">✅ Configuration saved successfully!</div>
+
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
+                © 2026 AWS Cloud Clubs – Mecs &nbsp;|&nbsp; Built with <span class="heart">❤</span> and HTML/JS
+            </footer>
+        </main>
+    </div>
+
+    <!-- 
+      Using base64 embedded JS if needed, but linking script.js locally.
+    -->
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Feedback:', err));
+            });
+        }
+    </script>
+</body>
+</html>

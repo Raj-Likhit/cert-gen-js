@@ -1,0 +1,6 @@
+node_modules/
+repo/
+test_output.png
+*.log
+.DS_Store
+.env
