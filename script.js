@@ -12,12 +12,13 @@
 
 // ── Configuration ────────────────────────────────────────────────────────────
 const DEFAULT_TEMPLATE_URL = 'template.png';
+const DEFAULT_FONT_URL = 'assets/PlayfairDisplay-Italic.ttf';
 const DEFAULT_CONFIG = {
     templateBase64: null,   // kept only for <img> preview + localStorage persistence
     nameX: 500,
     nameY: 400,
     fontSize: 60,
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: UPLOADED_FONT_FAMILY,
     fontWeight: 'normal',
     fontItalic: false,
     textAlign: 'center',
@@ -159,7 +160,7 @@ async function loadUploadedFont(file) {
     uploadedFont = {
         face,
         objectUrl,
-        fileName: file.name,
+        fileName: file.name || 'default_font.ttf',
         loaded: true
     };
 
@@ -193,6 +194,20 @@ async function init() {
             }
         } catch (e) {
             console.error('Failed to fetch default template:', e);
+        }
+    }
+
+    // 3. Load default custom font if configured
+    if (DEFAULT_FONT_URL && !uploadedFont.loaded) {
+        console.log('Loading default font from:', DEFAULT_FONT_URL);
+        try {
+            const fontRes = await fetch(DEFAULT_FONT_URL);
+            if (fontRes.ok) {
+                const fontBlob = await fontRes.blob();
+                await loadUploadedFont(fontBlob);
+            }
+        } catch (e) {
+            console.error('Failed to load default font:', e);
         }
     }
 
