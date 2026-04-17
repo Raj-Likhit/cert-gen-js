@@ -4,7 +4,8 @@ const ASSETS_TO_CACHE = [
   '/index.html',
   '/style.css',
   '/script.js',
-  '/assets/logo_beige.png'
+  '/assets/logo_beige.png',
+  '/assets/PlayfairDisplay-Italic.ttf'
 ];
 
 self.addEventListener('install', (event) => {

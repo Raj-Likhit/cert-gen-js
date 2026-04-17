@@ -12,15 +12,16 @@
 
 // ── Configuration ────────────────────────────────────────────────────────────
 const DEFAULT_TEMPLATE_URL = 'template.png';
-const DEFAULT_FONT_URL = 'assets/PlayfairDisplay-Italic.ttf';
+const HARDCODED_NAME_X = 1000;
+const HARDCODED_NAME_Y = 740;
 const DEFAULT_CONFIG = {
     templateBase64: null,   // kept only for <img> preview + localStorage persistence
-    nameX: 500,
-    nameY: 400,
+    nameX: HARDCODED_NAME_X,
+    nameY: HARDCODED_NAME_Y,
     fontSize: 60,
-    fontFamily: UPLOADED_FONT_FAMILY,
+    fontFamily: 'PlayfairDisplayCertificate',
     fontWeight: 'normal',
-    fontItalic: false,
+    fontItalic: true,
     textAlign: 'center',
     textCase: 'none',
     fontColor: '#000000',
@@ -32,6 +33,7 @@ const DEFAULT_CONFIG = {
 let config = { ...DEFAULT_CONFIG };
 
 const UPLOADED_FONT_FAMILY = 'UploadedCertificateFont';
+const HARDCODED_FONT_FAMILY = 'PlayfairDisplayCertificate';
 const FONT_LOAD_TIMEOUT_MS = 5000;
 
 let templateBuffer = null;   // raw template image bytes (ArrayBuffer)
@@ -160,7 +162,7 @@ async function loadUploadedFont(file) {
     uploadedFont = {
         face,
         objectUrl,
-        fileName: file.name || 'default_font.ttf',
+        fileName: file.name,
         loaded: true
     };
 
@@ -169,6 +171,10 @@ async function loadUploadedFont(file) {
 
 function isUploadedFontActive() {
     return uploadedFont.loaded && config.fontFamily === UPLOADED_FONT_FAMILY;
+}
+
+function isHardcodedFontActive() {
+    return config.fontFamily === HARDCODED_FONT_FAMILY;
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
@@ -194,20 +200,6 @@ async function init() {
             }
         } catch (e) {
             console.error('Failed to fetch default template:', e);
-        }
-    }
-
-    // 3. Load default custom font if configured
-    if (DEFAULT_FONT_URL && !uploadedFont.loaded) {
-        console.log('Loading default font from:', DEFAULT_FONT_URL);
-        try {
-            const fontRes = await fetch(DEFAULT_FONT_URL);
-            if (fontRes.ok) {
-                const fontBlob = await fontRes.blob();
-                await loadUploadedFont(fontBlob);
-            }
-        } catch (e) {
-            console.error('Failed to load default font:', e);
         }
     }
 
@@ -274,13 +266,21 @@ function loadConfig() {
     if (saved) {
         try {
             config = { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
-            if (config.fontFamily === 'CustomUserFont' || config.fontFamily === UPLOADED_FONT_FAMILY) {
+            if (
+                !config.fontFamily ||
+                config.fontFamily === 'Arial, sans-serif' ||
+                config.fontFamily === 'CustomUserFont' ||
+                config.fontFamily === UPLOADED_FONT_FAMILY
+            ) {
                 config.fontFamily = DEFAULT_CONFIG.fontFamily;
+                config.fontItalic = DEFAULT_CONFIG.fontItalic;
             }
         } catch (e) {
             console.error('Failed to parse saved config:', e);
         }
     }
+    config.nameX = HARDCODED_NAME_X;
+    config.nameY = HARDCODED_NAME_Y;
 }
 
 function getPersistentConfig() {
@@ -395,7 +395,7 @@ async function drawCertificateOnMainThread(canvas, nameText) {
         return;
     }
 
-    if (isUploadedFontActive() && document.fonts) {
+    if ((isUploadedFontActive() || isHardcodedFontActive()) && document.fonts) {
         await document.fonts.load(getCanvasFont(config), getRenderedName(nameText, config));
         await document.fonts.ready;
     }
@@ -501,8 +501,10 @@ function renderParticipants() {
 }
 
 function syncConfigFromUI() {
-    config.nameX       = parseInt(els.nameX.value)      || 500;
-    config.nameY       = parseInt(els.nameY.value)      || 400;
+    config.nameX       = HARDCODED_NAME_X;
+    config.nameY       = HARDCODED_NAME_Y;
+    els.nameX.value    = HARDCODED_NAME_X;
+    els.nameY.value    = HARDCODED_NAME_Y;
     config.fontSize    = parseInt(els.fontSize.value)   || 60;
 
     if (els.fontFamily.value === 'Custom Upload') {
@@ -516,6 +518,10 @@ function syncConfigFromUI() {
 
     config.fontWeight  = els.fontWeight.value;
     config.fontItalic  = els.fontItalic.checked;
+    if (config.fontFamily === HARDCODED_FONT_FAMILY) {
+        config.fontItalic = true;
+        els.fontItalic.checked = true;
+    }
     config.textAlign   = els.textAlign.value;
     config.textCase    = els.textCase.value;
     config.fontColor   = els.fontColor.value;

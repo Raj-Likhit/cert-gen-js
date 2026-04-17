@@ -1,3 +1,11 @@
+@font-face {
+    font-family: 'PlayfairDisplayCertificate';
+    src: url('assets/PlayfairDisplay-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: block;
+}
+
 :root {
     --space-dark: #03030b;
     --space-mid: #0a0a20;
