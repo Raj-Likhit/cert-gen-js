@@ -11,6 +11,7 @@
  */
 
 // ── Configuration ────────────────────────────────────────────────────────────
+const DEFAULT_TEMPLATE_URL = 'template.png';
 const DEFAULT_CONFIG = {
     templateBase64: null,   // kept only for <img> preview + localStorage persistence
     nameX: 500,
@@ -172,16 +173,46 @@ function isUploadedFontActive() {
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
     loadConfig();
-    // Restore templateBuffer from saved base64 (e.g. inject.js or previous session)
-    // Python equivalent: Image.open(template_path) on app start
+    
+    // 1. Try restoring from localStorage
     if (config.templateBase64) {
         templateBuffer = await base64ToArrayBuffer(config.templateBase64);
+    } 
+    
+    // 2. Fallback to default file if nothing was uploaded or restored
+    if (!templateBuffer) {
+        console.log('Loading default template from:', DEFAULT_TEMPLATE_URL);
+        try {
+            const response = await fetch(DEFAULT_TEMPLATE_URL);
+            if (response.ok) {
+                templateBuffer = await response.arrayBuffer();
+                // Generate a base64 for the admin preview so it doesn't look empty
+                config.templateBase64 = await arrayBufferToBase64(templateBuffer);
+            } else {
+                console.warn('Default template file not found on server.');
+            }
+        } catch (e) {
+            console.error('Failed to fetch default template:', e);
+        }
     }
+
     generateFallingEmojis();
     setupEventListeners();
     updateAdminUI();
     validateDownloadReady();
     renderPreview();
+}
+
+/**
+ * Helper to convert ArrayBuffer back to Base64 for previewing
+ */
+async function arrayBufferToBase64(buffer) {
+    const blob = new Blob([buffer]);
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+    });
 }
 
 /**
