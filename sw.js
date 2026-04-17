@@ -1,32 +1,48 @@
-const CACHE_NAME = 'cert-gen-v1';
+const CACHE_NAME = 'cert-gen-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/style.css',
   '/script.js',
-  '/renderWorker.js',
   '/assets/logo_beige.png'
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+  const isAppShellAsset = ['/', '/index.html', '/style.css', '/script.js', '/sw.js'].includes(url.pathname);
+
+  if (isAppShellAsset) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Return cached asset if found, else fetch from network
-      return response || fetch(event.request).then((networkResponse) => {
-        // Cache the dynamically fetched template image if it's high res
-        if (event.request.url.startsWith('data:image')) {
-             return networkResponse;
-        }
-        return networkResponse;
-      });
-    })
+    caches.match(event.request)
+      .then((cached) => cached || fetch(event.request))
   );
 });

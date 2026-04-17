@@ -182,9 +182,35 @@
                                 <input type="file" id="fontUpload" accept=".ttf,.otf" class="hidden" style="margin-top: 10px; width: 100%; border: 1px dashed rgba(212, 175, 55, 0.4); padding: 5px; border-radius: 8px; color: var(--gold-accent); font-size: 0.9rem;" />
                             </div>
                             
+                            <div class="input-group">
+                                <label for="fontWeight">Font Weight</label>
+                                <select id="fontWeight">
+                                    <option value="normal">Regular</option>
+                                    <option value="bold">Bold</option>
+                                </select>
+                            </div>
+                            
                             <div class="checkbox-group">
-                                <label class="checkbox-label"><input type="checkbox" id="fontBold"> Bold</label>
                                 <label class="checkbox-label"><input type="checkbox" id="fontItalic"> Italic</label>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="textAlign">Text Alignment</label>
+                                <select id="textAlign">
+                                    <option value="left">Left</option>
+                                    <option value="center" selected>Center</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="textCase">Text Case</label>
+                                <select id="textCase">
+                                    <option value="none">None</option>
+                                    <option value="uppercase">UPPERCASE</option>
+                                    <option value="lowercase">lowercase</option>
+                                    <option value="titlecase">Title Case</option>
+                                </select>
                             </div>
                         </div>
                     </div>
