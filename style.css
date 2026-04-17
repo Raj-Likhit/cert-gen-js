@@ -30,6 +30,8 @@
     --radius-sm: 8px;
     --radius-md: 16px;
     --radius-lg: 24px;
+    --pure-white: #ffffff;
+    --pure-black: #000000;
 }
 
 /* ── Reset & Base Styles ── */
@@ -448,7 +450,48 @@ input[type="color"] {
     height: 48px;
     padding: 2px;
     cursor: pointer;
+    border-radius: var(--radius-sm);
 }
+
+.color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.quick-colors {
+    display: flex;
+    gap: var(--spacing-1);
+    background: rgba(10, 10, 32, 0.4);
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.color-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.color-swatch:hover {
+    transform: scale(1.15);
+    border-color: var(--gold-accent);
+    box-shadow: 0 0 10px var(--gold-glow);
+}
+
+.color-swatch:active {
+    transform: scale(0.95);
+}
+
+.color-swatch.white { background-color: var(--pure-white); }
+.color-swatch.black { background-color: var(--pure-black); }
+.color-swatch.gold  { background-color: var(--gold-accent); }
 
 /* ── Buttons ── */
 .btn {

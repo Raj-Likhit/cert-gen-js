@@ -12,19 +12,22 @@
 
 // ── Configuration ────────────────────────────────────────────────────────────
 const DEFAULT_TEMPLATE_URL = 'template.png';
-const HARDCODED_NAME_X = 1000;
-const HARDCODED_NAME_Y = 740;
+const HARDCODED_NAME_X = 150;
+const HARDCODED_NAME_Y = 860;
+const HARDCODED_FONT_SIZE = 137;
+const HARDCODED_FONT_COLOR = '#ffffff';
+const HARDCODED_TEXT_ALIGN = 'left';
 const DEFAULT_CONFIG = {
     templateBase64: null,   // kept only for <img> preview + localStorage persistence
     nameX: HARDCODED_NAME_X,
     nameY: HARDCODED_NAME_Y,
-    fontSize: 60,
+    fontSize: HARDCODED_FONT_SIZE,
     fontFamily: 'PlayfairDisplayCertificate',
     fontWeight: 'normal',
     fontItalic: true,
-    textAlign: 'center',
+    textAlign: HARDCODED_TEXT_ALIGN,
     textCase: 'none',
-    fontColor: '#000000',
+    fontColor: HARDCODED_FONT_COLOR,
     strokeWidth: 0,
     strokeColor: '#000000',
     participants: []
@@ -281,6 +284,9 @@ function loadConfig() {
     }
     config.nameX = HARDCODED_NAME_X;
     config.nameY = HARDCODED_NAME_Y;
+    config.fontSize = HARDCODED_FONT_SIZE;
+    config.fontColor = HARDCODED_FONT_COLOR;
+    config.textAlign = HARDCODED_TEXT_ALIGN;
 }
 
 function getPersistentConfig() {
@@ -470,7 +476,7 @@ function updateAdminUI() {
 
     els.fontWeight.value  = config.fontWeight;
     els.fontItalic.checked = config.fontItalic;
-    els.textAlign.value   = config.textAlign;
+    els.textAlign.value   = HARDCODED_TEXT_ALIGN;
     els.textCase.value    = config.textCase;
     els.fontColor.value   = config.fontColor;
     els.strokeWidth.value = config.strokeWidth;
@@ -505,7 +511,9 @@ function syncConfigFromUI() {
     config.nameY       = HARDCODED_NAME_Y;
     els.nameX.value    = HARDCODED_NAME_X;
     els.nameY.value    = HARDCODED_NAME_Y;
-    config.fontSize    = parseInt(els.fontSize.value)   || 60;
+    config.fontSize    = HARDCODED_FONT_SIZE;
+    els.fontSize.value = HARDCODED_FONT_SIZE;
+    els.fontSizeDisplay.textContent = HARDCODED_FONT_SIZE + 'px';
 
     if (els.fontFamily.value === 'Custom Upload') {
         // Python: if font_family == "Custom Upload" → use custom_font_path
@@ -522,9 +530,11 @@ function syncConfigFromUI() {
         config.fontItalic = true;
         els.fontItalic.checked = true;
     }
-    config.textAlign   = els.textAlign.value;
+    config.textAlign   = HARDCODED_TEXT_ALIGN;
+    els.textAlign.value = HARDCODED_TEXT_ALIGN;
     config.textCase    = els.textCase.value;
-    config.fontColor   = els.fontColor.value;
+    config.fontColor   = HARDCODED_FONT_COLOR;
+    els.fontColor.value = HARDCODED_FONT_COLOR;
     config.strokeWidth = parseInt(els.strokeWidth.value) || 0;
     config.strokeColor = els.strokeColor.value;
 }
@@ -603,6 +613,14 @@ function setupEventListeners() {
     // Config live-preview triggers
     [els.nameX, els.nameY, els.fontColor, els.strokeColor, els.previewName].forEach(el => {
         el.addEventListener('input', () => { syncConfigFromUI(); renderPreview(); });
+    });
+
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+            els.fontColor.value = swatch.dataset.color;
+            syncConfigFromUI();
+            renderPreview();
+        });
     });
 
     // ── Font Family Dropdown ─────────────────────────────────────────────────
