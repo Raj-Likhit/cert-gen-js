@@ -12,11 +12,11 @@
 
 // ── Configuration ────────────────────────────────────────────────────────────
 const DEFAULT_TEMPLATE_URL = 'template.png';
-const HARDCODED_NAME_X = 150;
-const HARDCODED_NAME_Y = 860;
-const HARDCODED_FONT_SIZE = 137;
-const HARDCODED_FONT_COLOR = '#ffffff';
-const HARDCODED_TEXT_ALIGN = 'left';
+const HARDCODED_NAME_X = 3125;
+const HARDCODED_NAME_Y = 2300;
+const HARDCODED_FONT_SIZE = 440;
+const HARDCODED_FONT_COLOR = '#4a0d0d';
+const HARDCODED_TEXT_ALIGN = 'center';
 const DEFAULT_CONFIG = {
     templateBase64: null,   // kept only for <img> preview + localStorage persistence
     nameX: HARDCODED_NAME_X,
