@@ -191,8 +191,44 @@ function isHardcodedFontActive() {
     return config.fontFamily === HARDCODED_FONT_FAMILY;
 }
 
+// ── Server Config ────────────────────────────────────────────────────────────
+/**
+ * Fetches config.json from the server — the shared source of truth.
+ * Returns the parsed config object, or null if not found.
+ */
+async function loadServerConfig() {
+    try {
+        const res = await fetch('config.json?t=' + Date.now());
+        if (!res.ok) return null;
+        const serverCfg = await res.json();
+        // Merge: DEFAULT_CONFIG ← server config (shared truth)
+        config = { ...DEFAULT_CONFIG, ...serverCfg };
+        return serverCfg;
+    } catch (e) {
+        console.warn('No config.json found, using defaults:', e.message);
+        return null;
+    }
+}
+
+/**
+ * Returns a clean config object suitable for export as config.json.
+ * Excludes templateBase64 (the template image is a separate static file).
+ */
+function getExportableConfig() {
+    const exportCfg = { ...config };
+    delete exportCfg.templateBase64;
+    if (exportCfg.fontFamily === UPLOADED_FONT_FAMILY) {
+        exportCfg.fontFamily = DEFAULT_CONFIG.fontFamily;
+    }
+    return exportCfg;
+}
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
+    // 1. Load shared config from server (config.json)
+    await loadServerConfig();
+
+    // 2. Overlay any localStorage admin overrides on top
     loadConfig();
     
     // 1. Try restoring from localStorage
@@ -710,13 +746,18 @@ function setupEventListeners() {
     });
 
     els.btnHardcode.addEventListener('click', () => {
-        const hardcode = `const DEFAULT_CONFIG = ${JSON.stringify(getPersistentConfig(), null, 4)};`;
-        console.log('--- START HARDCODE CONFIG ---');
-        console.log(hardcode);
-        console.log('--- END HARDCODE CONFIG ---');
-        navigator.clipboard.writeText(hardcode).then(() => {
-            alert('Configuration code copied to clipboard! Paste this into script.js before deploying.');
-        });
+        const exportCfg = getExportableConfig();
+        const json = JSON.stringify(exportCfg, null, 4);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'config.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert('config.json downloaded! Place it in your repo root and push to share settings with all visitors.');
     });
 
     // ── Generate Certificate (User View) ─────────────────────────────────────
