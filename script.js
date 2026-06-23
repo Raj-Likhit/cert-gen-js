@@ -39,6 +39,17 @@ const UPLOADED_FONT_FAMILY = 'UploadedCertificateFont';
 const HARDCODED_FONT_FAMILY = 'PlayfairDisplayCertificate';
 const FONT_LOAD_TIMEOUT_MS = 5000;
 
+// ── Obfuscated Admin Credentials (SHA-256 digests) ───────────────────────────
+const _AU = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
+const _AP = '3e5ccec2f31885cf52a9b9f166c4e35fa074f5e58b6f8215dbe44559312f6b6c';
+
+async function _h(str) {
+    const buf = await crypto.subtle.digest('SHA-256',
+        new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 let templateBuffer = null;   // raw template image bytes (ArrayBuffer)
 let uploadedFont = {
     face: null,
@@ -282,11 +293,6 @@ function loadConfig() {
             console.error('Failed to parse saved config:', e);
         }
     }
-    config.nameX = HARDCODED_NAME_X;
-    config.nameY = HARDCODED_NAME_Y;
-    config.fontSize = HARDCODED_FONT_SIZE;
-    config.fontColor = HARDCODED_FONT_COLOR;
-    config.textAlign = HARDCODED_TEXT_ALIGN;
 }
 
 function getPersistentConfig() {
@@ -476,7 +482,7 @@ function updateAdminUI() {
 
     els.fontWeight.value  = config.fontWeight;
     els.fontItalic.checked = config.fontItalic;
-    els.textAlign.value   = HARDCODED_TEXT_ALIGN;
+    els.textAlign.value   = config.textAlign;
     els.textCase.value    = config.textCase;
     els.fontColor.value   = config.fontColor;
     els.strokeWidth.value = config.strokeWidth;
@@ -507,13 +513,10 @@ function renderParticipants() {
 }
 
 function syncConfigFromUI() {
-    config.nameX       = HARDCODED_NAME_X;
-    config.nameY       = HARDCODED_NAME_Y;
-    els.nameX.value    = HARDCODED_NAME_X;
-    els.nameY.value    = HARDCODED_NAME_Y;
-    config.fontSize    = HARDCODED_FONT_SIZE;
-    els.fontSize.value = HARDCODED_FONT_SIZE;
-    els.fontSizeDisplay.textContent = HARDCODED_FONT_SIZE + 'px';
+    config.nameX    = parseInt(els.nameX.value) || DEFAULT_CONFIG.nameX;
+    config.nameY    = parseInt(els.nameY.value) || DEFAULT_CONFIG.nameY;
+    config.fontSize = parseInt(els.fontSize.value) || DEFAULT_CONFIG.fontSize;
+    els.fontSizeDisplay.textContent = config.fontSize + 'px';
 
     if (els.fontFamily.value === 'Custom Upload') {
         // Python: if font_family == "Custom Upload" → use custom_font_path
@@ -530,11 +533,9 @@ function syncConfigFromUI() {
         config.fontItalic = true;
         els.fontItalic.checked = true;
     }
-    config.textAlign   = HARDCODED_TEXT_ALIGN;
-    els.textAlign.value = HARDCODED_TEXT_ALIGN;
+    config.textAlign   = els.textAlign.value;
     config.textCase    = els.textCase.value;
-    config.fontColor   = HARDCODED_FONT_COLOR;
-    els.fontColor.value = HARDCODED_FONT_COLOR;
+    config.fontColor   = els.fontColor.value;
     config.strokeWidth = parseInt(els.strokeWidth.value) || 0;
     config.strokeColor = els.strokeColor.value;
 }
@@ -556,10 +557,11 @@ function setupEventListeners() {
         ) closeMobileMenu();
     });
 
-    // Login
-    els.loginForm.addEventListener('submit', e => {
+    // Login (credentials verified via SHA-256 hash comparison)
+    els.loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (els.adminUser.value === 'admin' && els.adminPass.value === 'admin123') {
+        const [uH, pH] = await Promise.all([_h(els.adminUser.value), _h(els.adminPass.value)]);
+        if (uH === _AU && pH === _AP) {
             sessionStorage.setItem('adminAuth', 'true');
             els.loginError.classList.add('hidden');
             navigateTo('admin');
